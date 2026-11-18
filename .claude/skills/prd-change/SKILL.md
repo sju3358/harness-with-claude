@@ -1,6 +1,6 @@
 ---
 name: prd-change
-description: 승인된 PRD·API 문서를 바꿔야 할 때 쓴다. Codex가 artifacts/work/F-##/HANDOFF.md에 남긴 "PRD 변경 요청"이나 고객 요구 변경을 요구사항·PRD에 반영하고, 버전을 올려 재검증·재승인까지 진행한다. "PRD 변경 요청 반영", "요구사항 바뀜", "HANDOFF 처리" 요청에 쓴다.
+description: 승인된 PRD·API 문서를 바꿔야 할 때 쓴다. 검증·테스트 중 artifacts/work/F-##/HANDOFF.md에 남긴 "PRD 변경 요청"이나 고객 요구 변경을 요구사항·PRD에 반영하고, 버전을 올려 재검증·재승인까지 진행한다. "PRD 변경 요청 반영", "요구사항 바뀜", "HANDOFF 처리" 요청에 쓴다.
 ---
 
 # PRD 변경
@@ -8,7 +8,7 @@ description: 승인된 PRD·API 문서를 바꿔야 할 때 쓴다. Codex가 art
 ## 1. 요청 수집
 
 - 요청이 나온 feature의 작업 브랜치에서 실행한다. 그 브랜치의 `artifacts/work/F-##/HANDOFF.md`에서 처리가 `대기`인 PRD 변경 요청을 모두 모은다. 고객 요구 변경이면 출처(Notion·대화)를 받는다.
-- 요청마다 근거 원문(요구사항, PRD, Codex가 인용한 코드)을 직접 읽고 사실 여부를 확인한다.
+- 요청마다 근거 원문(요구사항, PRD, 요청이 인용한 코드)을 직접 읽고 사실 여부를 확인한다.
 
 ## 2. 사용자 결정
 

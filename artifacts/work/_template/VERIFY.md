@@ -1,6 +1,6 @@
 # F-## 문서-코드 정합성 검증
 
-- 검증자: verifier (새 컨텍스트)
+- 검증자: code-verifier mode=code (새 컨텍스트)
 - 기준: `docs/prd/features/F-##.md` vX.Y, `PLAN.md`, `docs/prd/02-common.md`
 - 대상 커밋·diff:
 

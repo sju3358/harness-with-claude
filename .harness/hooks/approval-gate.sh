@@ -5,46 +5,26 @@
 #   3) 보호 브랜치(main·master·통합 브랜치)에서의 git commit 차단
 #   예외: `하네스 도입 승인`(30분, 승인 브랜치 한정)이 있으면 보호 브랜치에서
 #         .harness/paths 안의 파일만 staged된 git commit과 그 브랜치로의 git push 허용
-#   4) codex 인자로 실행되거나 `Claude 테스터` 세션이면 커밋·push·병합·rebase·브랜치 생성·전환 차단 (AGENTS.md)
-# 사용법: approval-gate.sh [codex] (stdin: 도구 입력 JSON)
+# 사용법: approval-gate.sh (stdin: 도구 입력 JSON)
 
 dir=$(dirname "$0")
 . "$dir/lib.sh"
 
-agent=${1:-claude}
 require_jq
 input=$(cat)
 cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null | tr -d '\r')
 [ -n "$cmd" ] || exit 0
 
-# `Claude 테스터`로 지정된 Claude 세션은 Codex와 같은 git 제한 (docs/rules/workflow.md "Claude 테스터 세션")
-who=Codex
-if [ "$agent" = claude ] && is_tester_session "$(printf '%s' "$input" | jq -r '.session_id // empty' 2>/dev/null)"; then
-  agent=codex
-  who="Claude 테스터 세션"
-fi
 exec_cmd=$(strip_cmd "$cmd")
 
-# 승인 상태는 훅 메시지와 prd-check.sh로 확인하므로 에이전트가 이 경로를 다룰 일이 없음. 읽기 명령도 차단
+# 승인 상태는 훅 메시지와 approval-status.sh로 확인하므로 에이전트가 이 경로를 다룰 일이 없음. 읽기 명령도 차단
 # PowerShell 명령은 경로를 역슬래시로 쓸 수 있음
 printf '%s' "$cmd" | grep -q '\.harness[/\\]state' \
-  && deny ".harness/state/는 사용자 승인 문구로만 기록됨. 에이전트는 읽거나 만들거나 지우지 않음. 승인 상태는 훅 메시지와 sh .harness/hooks/prd-check.sh로 확인 (docs/rules/workflow.md 승인 게이트)"
+  && deny ".harness/state/는 사용자 승인 문구로만 기록됨. 에이전트는 읽거나 만들거나 지우지 않음. 승인 상태는 sh .harness/hooks/approval-status.sh로 확인 (docs/rules/workflow.md 승인 게이트)"
 
 git_sub() {
   printf '%s' "$exec_cmd" | grep -qE "(^|[;&|(]|&&)[[:space:]]*git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+$1\\b"
 }
-
-if [ "$agent" = codex ]; then
-  for sub in commit push merge rebase switch; do
-    git_sub "$sub" && deny "테스트·검증 담당($who)은 git ${sub} 명령을 실행하지 않음. 커밋·push는 Claude 구현 세션의 itd-commit, 브랜치 전환은 work-start가 함. HANDOFF.md 다음 행동에 적고 사용자에게 알릴 것 (AGENTS.md)"
-  done
-  # git checkout은 파일 되돌리기(`--` 뒤 경로)만 허용. 브랜치 전환·생성 차단
-  if git_sub checkout && ! printf '%s' "$exec_cmd" | grep -qE '\bcheckout\b[^;&|]*[[:space:]]--[[:space:]]'; then
-    deny "테스트·검증 담당($who)은 git checkout으로 브랜치를 바꾸지 않음(파일 되돌리기는 git restore <경로>). 브랜치 전환은 Claude 구현 세션의 work-start (AGENTS.md)"
-  fi
-  printf '%s' "$exec_cmd" | grep -qE '\bgit[[:space:]]+branch[[:space:]]+(-[dDmMcC]\b|--(delete|move|copy)\b|[^-[:space:]])' \
-    && deny "테스트·검증 담당($who)은 브랜치를 만들거나 바꾸거나 지우지 않음. 브랜치 작업은 Claude 구현 세션의 work-start (AGENTS.md)"
-fi
 
 approved() {
   f="$(state_dir)/git-approved"

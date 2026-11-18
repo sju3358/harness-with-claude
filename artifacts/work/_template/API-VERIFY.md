@@ -1,6 +1,6 @@
 # F-## API 문서-코드 검증
 
-- 검증자: verifier (새 컨텍스트)
+- 검증자: code-verifier mode=api (새 컨텍스트)
 - 기준: `docs/api/` vX.Y
 - 대상 커밋·diff:
 

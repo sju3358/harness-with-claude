@@ -6,14 +6,25 @@
 
 @docs/project.md
 
-# Claude 역할: 기획·문서·계획·구현
+# Claude 역할: 전 단계 담당
 
-- Claude는 작업 브랜치 생성·전환, 요구사항 도출, PRD 작성, API 문서 설계, 요구사항 ↔ PRD ↔ API 정합성 검증, 개발계획(`PLAN.md`) 작성, 구현(`src/main`·빌드 파일), 작업 브랜치 커밋·push(`itd-commit`)를 맡는다.
-- 테스트 코드(`src/test`) 작성과 구현 검증(문서-코드·API·테스트 유효성)은 Codex가 한다. Claude의 테스트 코드 편집은 `edit-guard` 훅이 차단한다. 구현한 Claude가 자기 코드를 "검증 완료"로 보고하지 않는다.
-- 소스·빌드 파일은 계획 승인 후에만 편집한다(`edit-guard` 훅이 차단). Codex가 남긴 `HANDOFF.md` "구현 수정 요청"·"계획 변경 요청"·"PRD 변경 요청"은 각각 `implement`·`feature-plan`·`prd-change`로 처리한다.
-- worktree를 만들지 않는다. `work-start`가 같은 폴더에서 작업 브랜치로 전환하고, 같은 세션에서 바로 이어 간다. 통합 브랜치에서는 문서·계획·코드를 편집하지 않는다(`edit-guard` 훅이 차단).
-- 세션은 언제든 끊길 수 있다(사용량 한도, 계정 전환). 작업 브랜치에서 세션이 시작되면 `SessionStart` 훅이 `HANDOFF.md`의 상태·진행 위치, 승인 상태, 미커밋 변경을 보여준다. 세션 중에 승인 여부가 필요하면 `sh .harness/hooks/approval-status.sh`를 실행한다(`.harness/state/`는 직접 읽지 않음). 그 내용부터 확인하고 이어 간다. 구현 중에는 파일 묶음마다 `HANDOFF.md` "진행 위치"를 갱신한다.
-- 스킬명이 프롬프트에 나오거나 아래 요청에 해당하면 `Skill` 도구로 호출한다. 기억으로 절차를 대신하지 않는다.
+- Claude가 작업 브랜치 생성·전환, 요구사항 도출, PRD 작성, API 문서 설계, 요구사항 ↔ PRD ↔ API 정합성 검증, 개발계획(`PLAN.md`), 구현(`src/main`·빌드 파일), 테스트 작성(`src/test`), 문서-코드·API·테스트 검증, 작업 브랜치 커밋·push(`itd-commit`)를 모두 맡는다.
+- 단계는 한 세션에서 한 흐름으로 이어 간다(`docs/rules/workflow.md` "단계"). 멈추는 곳은 승인 게이트, 사람 승인 필요 항목, PRD 변경(사용자 결정), 환경 문제뿐이다.
+- 작성자와 판정자는 컨텍스트로 나눈다. 판정은 새 컨텍스트의 `prd-verifier`(PRD)와 `code-verifier`(문서-코드·API·테스트 유효성)가 한다. 메인 세션은 자기 결과를 "검증 완료"로 보고하지 않는다.
+- 테스트 기대값은 문서(요구사항·PRD·API·`PLAN.md`)에서만 가져온다. 구현 코드나 구현할 때 기억한 동작을 기대값으로 쓰지 않는다. 테스트가 실패하면 기대값을 구현에 맞추지 않고, 구현 결함이면 `HANDOFF.md` "구현 수정 요청"에 먼저 적은 뒤 구현을 고친다.
+- 소스·빌드 파일·테스트 코드는 계획 승인 후에만 편집한다(`edit-guard` 훅이 차단). 통합 브랜치에서는 문서·계획·코드를 편집하지 않는다.
+- worktree를 만들지 않는다. `work-start`가 같은 폴더에서 작업 브랜치로 전환하고, 같은 세션에서 바로 이어 간다.
+
+## 계정 전환 인계
+
+- Claude 계정 두 개를 번갈아 쓴다. 한 계정의 토큰이 떨어지면 다른 계정이 같은 폴더에서 새 세션을 열어 이어 간다. 두 계정을 동시에 쓰지 않는다.
+- 맥락은 대화나 계정별 기억이 아니라 파일로 넘긴다. `HANDOFF.md` "진행 위치"를 언제 끊겨도 되게 갱신한다: 구현·테스트 작성 중 파일 묶음마다, 단계 시작·종료 때, 검증 에이전트 실행 직전.
+- 작업 브랜치에서 세션이 시작되면 `SessionStart` 훅이 `HANDOFF.md`의 상태·진행 위치(없으면 문서 단계 상태), 승인 상태, 미커밋 변경을 보여준다. 그 내용과 `git diff`로 실제 진행을 확인한 뒤 이어 간다. 세션 중에 승인 여부가 필요하면 `sh .harness/hooks/approval-status.sh`를 실행한다(`.harness/state/`는 직접 읽지 않음).
+- 결론 줄이 없는 검증 회차는 끊긴 회차다. `(중단)`을 붙이고 다음 번호로 다시 실행한다.
+
+## 스킬
+
+스킬명이 프롬프트에 나오거나 아래 요청에 해당하면 `Skill` 도구로 호출한다. 기억으로 절차를 대신하지 않는다.
 
 | 요청 | 스킬 |
 | --- | --- |
@@ -25,19 +36,13 @@
 | PRD 작성·보완 | `prd-write` |
 | API 문서 설계·수정, 프론트 전달용 문서 | `api-design` |
 | PRD 검증, 정합성 확인, PRD 승인 | `prd-verify` |
-| 개발계획 작성, 재계획, Codex의 계획 변경 요청 반영 | `feature-plan` |
-| 구현 시작·계속, Codex의 구현 수정 요청 반영 | `implement` |
-| Codex의 PRD 변경 요청 반영 | `prd-change` |
+| 개발계획 작성, 재계획 | `feature-plan` |
+| 구현 시작·계속, 구현 수정 요청 반영 | `implement` |
+| 문서-코드 정합성 검증 | `doc-code-verify` |
+| API 문서와 코드 대조 | `api-verify` |
+| 테스트 코드 작성 | `test-write` |
+| 테스트 실행·검증 | `test-verify` |
+| PRD 변경 요청 반영, 요구사항 변경 | `prd-change` |
 | 커밋 (테스트·검증 미완료면 경고 1회 후 사용자 판단) | `itd-commit` |
-| (Claude 테스터 세션만) 문서-코드·API 검증, 테스트 작성·검증 | `doc-code-verify`, `api-verify`, `test-write`, `test-verify` |
 
 - 사용자 확인은 `AskUserQuestion`, 멀티스텝 작업은 할 일 목록에 먼저 등록한다.
-- 검증은 작성한 세션이 아니라 `prd-verifier` 에이전트(새 컨텍스트)가 한다. 작성자가 자기 결과를 "검증 완료"로 보고하지 않는다.
-
-## Claude 테스터 세션 (선택, 권장은 Codex)
-
-사용자가 새 Claude 세션의 첫 입력으로 `Claude 테스터`를 넣으면 그 세션은 이 문서의 역할이 아니라 `AGENTS.md`의 Codex 역할(테스트 작성·검증)을 그대로 따른다. 판정은 `verifier` 대신 `code-verifier`, 나머지 차이는 `docs/rules/workflow.md` "Claude 테스터 세션". 훅이 그 세션에 Codex와 같은 편집·git 제한을 건다. 다른 Claude 세션은 그대로 구현 담당이다. 테스트·검증 담당을 정해야 할 때는 Codex를 권장안으로 먼저 제시한다.
-
-## Codex 대행
-
-Codex를 쓸 수 없을 때 사용자가 요청하면 `docs/rules/workflow.md` "대행 작업" 범위에서만 대신한다. 검사·빌드·테스트 실행, 검증 판정(`doc-code-verify`·`api-verify`·`test-verify`, 에이전트는 `code-verifier`), 충돌 없는 통합 브랜치 반영이 해당한다. 대행 검증은 구현한 세션과 분리된 `code-verifier`(새 컨텍스트)가 하고, 테스트 코드는 대행 중에도 쓰지 않으며, 한 일은 `HANDOFF.md` "대행 기록"에 남긴다.

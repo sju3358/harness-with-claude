@@ -10,7 +10,7 @@ description: 하네스를 clone한 새 프로젝트의 초기 셋팅을 한다. 
 ## 1. 현황 확인
 
 - `docs/project.md`가 이미 채워져 있으면 덮어쓰지 않고 바뀔 항목만 묻는다.
-- `git status`, `git branch`, `git remote -v`로 저장소 상태를 확인한다. `.git`이 하네스 원본(`init-harness`)을 가리키면 README의 "시작" 절차(`rm -rf .git && git init -b main`)를 사용자가 직접 하도록 안내하고 멈춘다. `.git` 삭제는 에이전트가 하지 않는다.
+- `git status`, `git branch`, `git remote -v`로 저장소 상태를 확인한다. `.git`이 하네스 원본(`harness-with-claude`)을 가리키면 README의 "시작" 절차(`rm -rf .git && git init -b main`)를 사용자가 직접 하도록 안내하고 멈춘다. `.git` 삭제는 에이전트가 하지 않는다.
 - Notion 기획 원본 링크가 있으면 받아 둔다(이 단계에서 읽지는 않음).
 
 ## 2. 스택 질문

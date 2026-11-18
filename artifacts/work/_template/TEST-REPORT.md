@@ -23,7 +23,7 @@ PRD·`PLAN.md`가 정하지 않아 기대값을 정할 수 없던 동작. 추측
 (sh scripts/check-trace.sh feature F-## 출력)
 ```
 
-## 테스트 유효성 (verifier)
+## 테스트 유효성 (code-verifier mode=test)
 
 | TC | 판정 | 근거 |
 | --- | --- | --- |

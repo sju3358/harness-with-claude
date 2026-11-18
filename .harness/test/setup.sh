@@ -1,5 +1,5 @@
 #!/bin/sh
-# 하네스 검증용 샌드박스 프로젝트 생성. 실제 프로젝트를 건드리지 않고 Claude·Codex 세션으로 하네스 동작을 시험하기 위함
+# 하네스 검증용 샌드박스 프로젝트 생성. 실제 프로젝트를 건드리지 않고 Claude 세션으로 하네스 동작을 시험하기 위함
 # 사용법 (하네스 저장소 루트에서): sh .harness/test/setup.sh <대상 폴더>
 #   <대상 폴더>는 없거나 비어 있어야 함. 같은 위치에 <대상 폴더>-origin.git(push 시험용 로컬 원격)도 만듦
 #   하네스 파일은 현재 작업 트리(미커밋 변경 포함)에서 복사
@@ -154,10 +154,9 @@ sub() {
 }
 for f in artifacts/work/F-01/*.md; do sub "$f" -e 's/^# F-## /# F-01 /'; done
 sub artifacts/work/F-01/HANDOFF.md \
-  -e 's/^- 담당: Claude \/ Codex$/- 담당: Claude/' \
   -e 's/^- 현재 단계: .*/- 현재 단계: C4 개발계획/' \
   -e 's/^- 상태: 진행 \/ 차단 \/ 완료$/- 상태: 진행/' \
-  -e 's/^- 다음 행동: .*/- 다음 행동: `Claude feature-plan` (하네스 검증 샌드박스. 실제 feature 아님)/' \
+  -e 's/^- 다음 행동: .*/- 다음 행동: `feature-plan` (하네스 검증 샌드박스. 실제 feature 아님)/' \
   -e 's/^- 끝난 것:$/- 끝난 것: 샌드박스 준비(setup.sh)/'
 g add -A
 g commit -q -m "feat/ITD-9001 하네스 검증용 F-01 산출물 준비"
@@ -247,7 +246,7 @@ cat > artifacts/work/F-02/PLAN.md <<'EOF'
 | 경로 | 신규/수정 | 내용 |
 | --- | --- | --- |
 | `src/main/java/demo/discount/DiscountCalculator.java` | 신규 | 할인 계산 |
-| `src/test/java/demo/discount/DiscountCalculatorTest.java` | 신규 | TC-F02-01~04 (Codex) |
+| `src/test/java/demo/discount/DiscountCalculatorTest.java` | 신규 | TC-F02-01~04 |
 
 ## 테스트 케이스
 
@@ -271,10 +270,9 @@ cat > artifacts/work/F-02/PLAN.md <<'EOF'
 | --- | --- | --- | --- |
 EOF
 sub artifacts/work/F-02/HANDOFF.md \
-  -e 's/^- 담당: Claude \/ Codex$/- 담당: Codex/' \
-  -e 's/^- 현재 단계: .*/- 현재 단계: X2 테스트 작성/' \
+  -e 's/^- 현재 단계: .*/- 현재 단계: C8 테스트 작성/' \
   -e 's/^- 상태: 진행 \/ 차단 \/ 완료$/- 상태: 진행/' \
-  -e 's/^- 다음 행동: .*/- 다음 행동: `Codex test-write` (하네스 검증 샌드박스. 문서-코드·API 검증은 생략)/' \
+  -e 's/^- 다음 행동: .*/- 다음 행동: `test-write` (하네스 검증 샌드박스. 문서-코드·API 검증은 생략)/' \
   -e 's/^- 끝난 것:$/- 끝난 것: F-02 구현(DiscountCalculator)/'
 mkdir -p src/main/java/demo/discount
 cat > src/main/java/demo/discount/DiscountCalculator.java <<'EOF'
@@ -304,7 +302,7 @@ g push -q -u origin main feat/ITD-9001 feat/ITD-9003
 git config core.hooksPath .githooks
 chmod +x .githooks/* .harness/hooks/*.sh .harness/test/*.sh scripts/*.sh 2>/dev/null || true
 : > .git/harness-sandbox
-# feat/ITD-9003은 Codex가 바로 test-write부터 하도록 계획 승인을 미리 기록(샌드박스 전용. Claude에서 '계획 승인'을 입력하면 implement로 넘어가 심어 둔 결함이 테스트 전에 고쳐짐)
+# feat/ITD-9003은 바로 test-write부터 하도록 계획 승인을 미리 기록(샌드박스 전용. '계획 승인'을 다시 입력하면 implement로 넘어가 심어 둔 결함이 테스트 전에 고쳐질 수 있음)
 mkdir -p .harness/state
 date '+%Y-%m-%dT%H:%M:%S' > .harness/state/plan-approved--feat_ITD-9003
 

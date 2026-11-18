@@ -74,7 +74,8 @@ while IFS= read -r p; do
         log 삭제보류 "$p (새 버전에서 삭제된 링크지만 프로젝트에서 바뀜)"
       fi
     elif show "$base" "$p" "$tmp/b" && tr -d '\r' < "$p" | cmp -s - "$tmp/b"; then
-      rm -f "$p" && log 삭제 "$p"
+      # 비게 된 상위 폴더도 지움(rmdir은 빈 폴더만 지우므로 다른 파일이 있는 폴더에서 멈춤)
+      rm -f "$p" && log 삭제 "$p" && rmdir -p "$(dirname "$p")" 2>/dev/null
     else
       log 삭제보류 "$p (새 버전에서 삭제됐지만 프로젝트에서 고친 파일)"
     fi

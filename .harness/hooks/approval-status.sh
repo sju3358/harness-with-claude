@@ -1,8 +1,8 @@
 #!/bin/sh
-# 승인 상태 요약(읽기 전용). 새 세션이 이전 세션의 승인 기록을 확인하는 유일한 경로
+# 승인 상태 요약(읽기 전용). 새 세션(다른 계정 포함)이 이전 세션의 승인 기록을 확인하는 유일한 경로
 # 에이전트는 .harness/state/를 직접 다루지 않고(approval-gate가 차단) 이 스크립트를 실행한다
 # 사용법: sh .harness/hooks/approval-status.sh
-# Claude는 SessionStart 훅(session-context.sh)이 작업 브랜치에서 자동으로 출력
+# SessionStart 훅(session-context.sh)이 작업 브랜치에서 자동으로 출력
 
 dir=$(dirname "$0")
 . "$dir/lib.sh"
@@ -70,13 +70,6 @@ if [ -n "$left" ]; then
   echo "- 커밋·푸시 승인: $(tr '\n' ' ' < "$f" | sed -e 's/commit/커밋/' -e 's/push/푸시/' -e 's/ *$//') (남은 시간 ${left}분)"
 else
   echo "- 커밋·푸시 승인: 없음"
-fi
-
-f="$state/claude-tester"
-if [ -f "$f" ]; then
-  echo "- 테스트·검증 담당: Claude 테스터 세션 (session $(tr -d '\r\n' < "$f" | cut -c1-8)…). 해제는 'Claude 테스터 해제'"
-else
-  echo "- 테스트·검증 담당: Codex (기본·권장)"
 fi
 
 f="$state/adopt-approved"

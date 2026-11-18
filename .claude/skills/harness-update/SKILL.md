@@ -20,7 +20,7 @@ description: 하네스가 이미 설치된 프로젝트에 최신 하네스를 �
 
 ```bash
 tmp=$(mktemp -d)
-git clone -q https://github.com/sju3358/init-harness.git "$tmp/harness"
+git clone -q https://github.com/sju3358/harness-with-claude.git "$tmp/harness"
 sh "$tmp/harness/.harness/update.sh" <기준 커밋|-> "$tmp/harness"
 ```
 
@@ -44,6 +44,7 @@ sh "$tmp/harness/.harness/update.sh" <기준 커밋|-> "$tmp/harness"
 - 충돌 파일마다 양쪽 내용을 보여주고 정한다. 프로젝트 전용 규칙(스택, 고객사 규칙)은 프로젝트 쪽, 하네스 절차·훅은 새 버전 쪽이 기본이다. 애매하면 사용자에게 묻는다.
 - `grep -rln '^<<<<<<< 프로젝트' .`로 충돌 표시가 남지 않았는지 확인한다.
 - `삭제보류` 파일은 목록으로 보고하고 사용자가 정한다.
+- Claude·Codex 분업 버전에서 올라오는 경우 `AGENTS.md`, `.codex/`, `.agents/`, `.harness/hooks/codex-tool-adapter.mjs`가 삭제되거나 삭제보류된다. 삭제보류된 `AGENTS.md`·`.codex/`에 프로젝트 고유 규칙이 있으면 `CLAUDE.md` "프로젝트 규칙"으로 옮길지 사용자에게 묻고, 확인을 받은 뒤 지운다. 프로젝트 `.claude/settings.json`에 병합된 훅 명령의 `edit-guard.sh" claude` 인자는 무시되므로 그대로 둬도 된다.
 
 ## 3. 템플릿 변경 반영
 
@@ -54,14 +55,14 @@ sh "$tmp/harness/.harness/update.sh" <기준 커밋|-> "$tmp/harness"
 ## 4. 검증
 
 ```bash
-jq empty .claude/settings.json .codex/hooks.json
+jq empty .claude/settings.json
 for f in .harness/hooks/*.sh .githooks/* scripts/*.sh; do sh -n "$f" || echo "문법 오류: $f"; done
-node --check .harness/hooks/codex-tool-adapter.mjs scripts/check-api.mjs
+node --check scripts/check-api.mjs
 git config core.hooksPath
 ```
 
 - 실패하면 원인을 고친다. 고칠 수 없으면 커밋하지 않고 보고한다.
-- 훅 등록(`.claude/settings.json`, `.codex/hooks.json`)이 바뀌었으면 세션을 다시 시작해야 반영된다고 알린다. 훅 스크립트 내용 변경은 바로 반영된다.
+- 훅 등록(`.claude/settings.json`)이 바뀌었으면 세션을 다시 시작해야 반영된다고 알린다. 훅 스크립트 내용 변경은 바로 반영된다.
 
 ## 5. 커밋·push
 

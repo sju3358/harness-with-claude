@@ -1,6 +1,6 @@
 # API 문서
 
-프론트엔드 개발자 전달용 API 명세. Claude `api-design`이 작성하고, Codex `api-verify`가 코드와 일치하는지 검증한다.
+프론트엔드 개발자 전달용 API 명세. `api-design`이 작성하고, `api-verify`가 코드와 일치하는지 검증한다.
 
 - 버전: v0.1
 - 상태: 작성 중

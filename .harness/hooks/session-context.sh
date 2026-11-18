@@ -1,24 +1,21 @@
 #!/bin/sh
-# SessionStart 훅(Claude): 작업 브랜치에서 세션이 시작·재개·압축되면 인계 상태를 컨텍스트로 출력
-# 계정 전환·사용량 한도 뒤 새 세션에서도 HANDOFF.md의 상태·진행 위치, 승인 상태, 미커밋 변경을 보고 바로 이어 가기 위함
+# SessionStart 훅: 작업 브랜치에서 세션이 시작·재개·압축되면 인계 상태를 컨텍스트로 출력
+# 토큰 한도로 다른 계정의 새 세션이 이어 받아도 대화 맥락 없이 파일만으로 이어 가기 위함
+#   - artifacts/work/F-*/HANDOFF.md의 "상태"·"진행 위치"
+#   - HANDOFF.md가 아직 없으면(feature-plan 전) 요구사항·PRD·API 문서의 버전·상태 줄과 마지막 PRD 검증 회차
+#   - 승인 상태(approval-status.sh), 미커밋 변경
 # 출력만 하고 막지 않음
 
 dir=$(dirname "$0")
 . "$dir/lib.sh"
 
-input=""
-[ -t 0 ] || input=$(cat)
-sid=$(printf '%s' "$input" | jq -r '.session_id // empty' 2>/dev/null)
-if is_tester_session "$sid"; then
-  echo "하네스: 이 세션은 Claude 테스터 세션이다(Codex 역할 대체). CLAUDE.md의 구현 역할이 아니라 AGENTS.md와 docs/rules/workflow.md 'Claude 테스터 세션'을 따른다. 판정은 code-verifier 에이전트."
-  echo
-fi
+[ -t 0 ] || cat >/dev/null
 
 branch=$(current_branch)
 is_work_branch "$branch" || exit 0
 root=$(repo_root)
 
-echo "하네스: 작업 브랜치($branch) 세션. 이전 세션의 인계 상태다. 이어서 작업하기 전에 확인하고, 필요하면 HANDOFF.md 전체와 PLAN.md를 읽을 것."
+echo "하네스: 작업 브랜치($branch) 세션. 이전 세션(다른 계정일 수 있음)의 인계 상태다. 대화 기억이 아니라 이 내용과 파일로 이어 간다. 이어서 작업하기 전에 확인하고, 필요하면 HANDOFF.md 전체와 PLAN.md를 읽을 것."
 found=0
 for f in "$root"/artifacts/work/F-*/HANDOFF.md; do
   [ -f "$f" ] || continue
@@ -27,7 +24,22 @@ for f in "$root"/artifacts/work/F-*/HANDOFF.md; do
   echo "== ${f#"$root"/}"
   awk '/^## /{ p = ($0 == "## 상태" || $0 == "## 진행 위치") } p' "$f"
 done
-[ "$found" = 1 ] || echo "(artifacts/work/F-*/HANDOFF.md 없음: 아직 feature-plan 전 단계)"
+
+if [ "$found" = 0 ]; then
+  echo
+  echo "== 문서 단계 (HANDOFF.md 없음: feature-plan 전)"
+  for f in docs/requirements.md docs/prd/00-overview.md docs/api/README.md; do
+    [ -f "$root/$f" ] || continue
+    printf '%s: %s\n' "$f" "$(grep -E '^- (버전|상태):' "$root/$f" | tr -d '\r' | sed 's/^- //' | tr '\n' ' ' | sed 's/ *$//')"
+  done
+  ls "$root"/docs/prd/features/F-*.md >/dev/null 2>&1 \
+    && echo "feature 명세: $(cd "$root" && ls docs/prd/features/F-*.md | tr '\n' ' ' | sed 's/ *$//')"
+  v="$root/docs/verification/prd-verify.md"
+  if [ -f "$v" ]; then
+    last=$(tr -d '\r' < "$v" | awk '/^## 회차/{ h = $0; r = ""; c = "(결론 없음: 중단된 회차일 수 있음)" } /^- 범위:/{ r = $0 } /^### 결론:/{ c = $0 } END { if (h) print h " | " r " | " c }')
+    echo "마지막 PRD 검증 회차: ${last:-없음}"
+  fi
+fi
 
 echo
 echo "== 승인 상태 (sh .harness/hooks/approval-status.sh)"

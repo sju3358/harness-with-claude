@@ -1,12 +1,9 @@
 # 하네스 소유 경로. `/`로 끝나면 하위 전체
 # 하네스 도입 예외(`하네스 도입 승인`)로 보호 브랜치에 커밋할 수 있는 파일은 이 목록 안의 파일뿐
 CLAUDE.md
-AGENTS.md
 .gitignore
 .gitattributes
 .claude/
-.codex/
-.agents/
 .harness/
 .githooks/
 .husky/
@@ -20,3 +17,7 @@ docs/prd/
 docs/api/
 docs/verification/
 artifacts/work/
+# 이전 버전(Claude·Codex 분업)에서 쓰던 하네스 경로. 지금은 없지만, 업데이트로 삭제된 것을 보호 브랜치에 커밋할 수 있게 남김
+AGENTS.md
+.codex/
+.agents/

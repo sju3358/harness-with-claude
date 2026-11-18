@@ -5,12 +5,9 @@
 		"allow": ["Edit(/docs/**)", "Edit(/artifacts/work/**)", "Bash(sh scripts/check-trace.sh *)", "Bash(node scripts/check-api.mjs*)"],
 		"ask": [
 			"Edit(/.claude/**)",
-			"Edit(/.codex/**)",
-			"Edit(/.agents/**)",
 			"Edit(/.harness/**)",
 			"Edit(/.githooks/**)",
 			"Edit(/CLAUDE.md)",
-			"Edit(/AGENTS.md)",
 			"Edit(/docs/rules/**)",
 			"Bash(git commit *)",
 			"Bash(git push *)"
@@ -56,7 +53,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "sh \"$CLAUDE_PROJECT_DIR/.harness/hooks/edit-guard.sh\" claude"
+						"command": "sh \"$CLAUDE_PROJECT_DIR/.harness/hooks/edit-guard.sh\""
 					}
 				]
 			}
