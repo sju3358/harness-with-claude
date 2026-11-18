@@ -47,7 +47,8 @@ r=$(last_full_prd_round)
 if [ -z "$r" ]; then
   echo "- PRD 전체 검증: 없음"
 elif [ "${r#*|}" = "$(prd_hash)" ]; then
-  echo "- PRD 전체 검증: 마지막 전체 회차 결론 '${r%%|*}' (현재 문서 기준)"
+  c=${r%%|*}
+  echo "- PRD 전체 검증: 마지막 전체 회차 결론 '${c:-없음(중단된 회차)}' (현재 문서 기준)"
 else
   echo "- PRD 전체 검증: 마지막 전체 회차 이후 문서가 바뀜 (승인 전 전체 검증 다시 필요)"
 fi

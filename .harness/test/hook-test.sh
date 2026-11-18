@@ -97,6 +97,7 @@ check "main: PRD 편집 차단(절대 경로)" 2 "$(edit "$root/docs/prd/00-over
 check "main: 소스 편집 차단" 2 "$(edit src/main/java/demo/DemoApplication.java)"
 check "main: 테스트 편집 차단" 2 "$(edit src/test/java/demo/DemoTest.java)"
 check "main: feature 산출물(HANDOFF) 편집 차단" 2 "$(edit artifacts/work/F-01/HANDOFF.md)"
+check "main: PRD 검증 결과 편집 차단" 2 "$(edit docs/verification/prd-verify.md)"
 check "main: 규칙 밖 파일(README 등) 편집 허용" 0 "$(edit notes.md)"
 check "main: git commit 차단(보호 브랜치)" 2 "$(bash_hook approval-gate 'git commit -m x')"
 say "계획 승인"

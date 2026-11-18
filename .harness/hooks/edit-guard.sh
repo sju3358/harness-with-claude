@@ -2,7 +2,7 @@
 # PreToolUse(Edit|Write) 훅: 작업 브랜치와 계획 승인 게이트를 파일 편집에서 강제
 # 사용법: edit-guard.sh (stdin: 도구 입력 JSON)
 #   .harness/state/(승인 기록) 편집 차단
-#   요구사항·PRD·API 문서·feature 산출물·소스·테스트는 작업 브랜치(feat|fix/ITD-####)에서만 편집. 통합 브랜치에서 차단
+#   요구사항·PRD·API 문서·PRD 검증 결과·feature 산출물·소스·테스트는 작업 브랜치(feat|fix/ITD-####)에서만 편집. 통합 브랜치에서 차단
 #   소스·빌드 파일·테스트는 계획 승인 기록이 있을 때만 편집
 
 dir=$(dirname "$0")
@@ -24,7 +24,7 @@ kind=other
 case "$rel" in
   src/test/*|*/src/test/*) kind=code ;;
   src/*|*/src/main/*|build.gradle|build.gradle.kts|*/build.gradle|*/build.gradle.kts|settings.gradle|settings.gradle.kts|pom.xml|*/pom.xml|gradle/*|gradlew|gradlew.bat) kind=code ;;
-  docs/requirements.md|docs/prd/*|docs/api/*) kind=doc ;;
+  docs/requirements.md|docs/prd/*|docs/api/*|docs/verification/*) kind=doc ;;
   artifacts/work/_template/*|artifacts/work/README.md) ;;
   artifacts/work/*) kind=doc ;;
 esac

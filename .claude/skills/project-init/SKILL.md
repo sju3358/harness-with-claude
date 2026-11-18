@@ -26,7 +26,7 @@ description: 하네스를 clone한 새 프로젝트의 초기 셋팅을 한다. 
 
 ## 3. 기록
 
-- `docs/project.md`의 스택 표, 검증 명령(빌드 도구에 맞춰: Gradle이면 `./gradlew build`, `./gradlew test` 등), 통합 브랜치를 채운다.
+- `docs/project.md`의 스택 표, 검증 명령, 통합 브랜치를 채운다. 빌드 명령은 테스트를 빼고 컴파일·패키징만 하는 명령으로 쓴다(`implement`의 컴파일 확인용. Gradle `./gradlew build -x test`, Maven `./mvnw -DskipTests package`). 테스트 명령은 따로 적는다(Gradle `./gradlew test`, Maven `./mvnw test`).
 - 검증 명령은 사용자에게 보여주고 맞는지 확인받는다.
 - `docs/prd/01-skillset.md`는 통합 브랜치에서 고치지 않는다(PRD 문서는 작업 브랜치에서만 편집). 첫 티켓의 `prd-write`가 `project.md` 스택을 옮겨 채운다.
 

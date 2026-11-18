@@ -141,7 +141,7 @@ flowchart TD
 
 | 단계 | 이렇게 말하면 | 하는 일 | 산출물 | 다음으로 넘어가는 조건 |
 | --- | --- | --- | --- | --- |
-| 작업 시작 | "ITD-1234 작업 시작해줘" | 티켓 번호·종류를 확인하고 미커밋 변경이 없는지 본 뒤, `main`을 최신화하고 `git switch -c feat/ITD-1234`로 전환합니다. 같은 브랜치가 있으면 그 브랜치로 전환합니다 | `feat/ITD-1234` | 같은 세션에서 다음 단계 |
+| 작업 시작 | "ITD-1234 작업 시작해줘" | 티켓 번호·종류를 확인하고 미커밋 변경이 없는지, 하네스가 최신인지(구버전이면 업데이트 먼저) 본 뒤, `main`을 최신화하고 `git switch -c feat/ITD-1234`로 전환합니다. 같은 브랜치가 있으면 그 브랜치로 전환합니다 | `feat/ITD-1234` | 같은 세션에서 다음 단계 |
 | 요구사항 | "요구사항 정리해줘", "Notion 기획서 읽어줘" | Notion(MCP)과 대화에서 **이 티켓 범위의** 요구사항을 뽑아 `REQ-###`, 인수 기준, 출처를 적습니다. 불확실한 건 미결 질문(`Q-###`)으로, 다른 feature 요구는 별도 티켓 후보로 분리합니다 | `docs/requirements.md` | 요구사항마다 판정 가능한 인수 기준이 있음 |
 | PRD | "PRD 작성해줘" | 이 티켓의 feature(`F-##`)를 먼저 확인받고 개요, 스킬셋, 공통 사항, 기능 명세, 배포·운영을 씁니다. 모든 규정에 근거 REQ를 답니다 | `docs/prd/**` | `check-trace.sh prd` 통과 |
 | API 문서 | "API 문서 작성해줘" | 프론트에 그대로 보낼 **한 장짜리** 문서를 씁니다. 공통 규약, 엔드포인트(`API-###`)마다 필드·타입·필수·null 가능·에러와 프론트 처리, 변경 이력을 한 파일에 담고, 다른 문서를 가리키지 않습니다. REQ·feature 같은 내부 정보는 넣지 않습니다(연결은 feature 명세 API 표). 마지막에 전달용 요약을 줍니다 | `docs/api/README.md` | PRD의 모든 API가 필드 단위까지 문서화됨, 자체 완결 |
@@ -252,8 +252,8 @@ Claude 계정 두 개를 번갈아 씁니다. 1번 계정의 토큰이 떨어지
 
 | ID | 형식 | 정의 위치 | 인용하는 곳 |
 | --- | --- | --- | --- |
-| 요구사항 | `REQ-###` | `docs/requirements.md` | PRD, API 문서, PLAN, 테스트 |
-| feature | `F-##` | `docs/prd/00-overview.md` | API 문서, 작업 폴더 |
+| 요구사항 | `REQ-###` | `docs/requirements.md` | PRD(feature 명세 API 표 포함), PLAN, 테스트 |
+| feature | `F-##` | `docs/prd/00-overview.md` | feature 명세 파일명, 작업 폴더, TC ID |
 | API | `API-###` | `docs/api/README.md` 엔드포인트 제목 | feature 명세 API 표(feature·REQ 연결의 원본), PLAN |
 | 테스트 케이스 | `TC-F##-##` | `artifacts/work/F-##/PLAN.md` | 테스트 `@DisplayName`, `test-status.md` |
 
@@ -372,7 +372,7 @@ feat/ITD-1234 주문 조회 API 추가
 
 | 훅 | 시점 | 막는 것 |
 | --- | --- | --- |
-| `edit-guard.sh` | 파일 편집 전 | 계획 승인 없는 소스·빌드·테스트 편집 / 작업 브랜치가 아닌 곳(통합 브랜치)에서의 문서·산출물·소스·테스트 편집 / 승인 기록 파일 편집 |
+| `edit-guard.sh` | 파일 편집 전 | 계획 승인 없는 소스·빌드·테스트 편집 / 작업 브랜치가 아닌 곳(통합 브랜치)에서의 요구사항·PRD·API 문서·PRD 검증 결과·feature 산출물·소스·테스트 편집 / 승인 기록 파일 편집 |
 | `approval-gate.sh` | 셸 명령 전 | 승인 없는 commit·push / 보호 브랜치 커밋 / `.harness/state/`를 다루는 명령(읽기 포함) / 하네스 예외 범위를 벗어난 커밋·push |
 | `git-safety-guard.sh` | 셸 명령 전 | `reset --hard`, `clean -f`, `branch -D`, `checkout -- .`, 강제 push, bare `stash`·`stash pop`, `pkill`·`killall`·`taskkill /IM`·`Stop-Process -Name` |
 | `record-approval.sh` | 사용자 입력 시 | (막지 않음) 승인 문구 기록 |
@@ -448,7 +448,7 @@ feat/ITD-1234 주문 조회 API 추가
 
    push 시험용 로컬 원격 `../harness-sandbox-origin.git`도 함께 만듭니다.
 
-2. **훅 자동 검사**: 샌드박스에서 `sh .harness/test/hook-test.sh`를 실행합니다. 작업 브랜치, 계획 승인(소스·테스트), 승인 문구·게이트, PRD 승인의 전체 회차·중단 회차 처리, git 안전, Git 훅, 승인 기록 보호·상태 확인, 하네스 버전 확인(최신·구버전·확인 불가·원본 저장소), 계정 전환 인계(HANDOFF 전·후), 하네스 OFF/ON을 84개 항목으로 확인하고 `실패 0`이어야 합니다. 승인 입력을 흉내 내므로 `setup.sh`가 만든 샌드박스에서만 실행됩니다.
+2. **훅 자동 검사**: 샌드박스에서 `sh .harness/test/hook-test.sh`를 실행합니다. 작업 브랜치, 계획 승인(소스·테스트), 승인 문구·게이트, PRD 승인의 전체 회차·중단 회차 처리, git 안전, Git 훅, 승인 기록 보호·상태 확인, 하네스 버전 확인(최신·구버전·확인 불가·원본 저장소), 계정 전환 인계(HANDOFF 전·후), 하네스 OFF/ON을 85개 항목으로 확인하고 `실패 0`이어야 합니다. 승인 입력을 흉내 내므로 `setup.sh`가 만든 샌드박스에서만 실행됩니다.
 
 3. **세션 시나리오**: 샌드박스 폴더에서 Claude 세션을 열고 [SCENARIOS.md](.harness/test/SCENARIOS.md) 순서대로 입력합니다. 기본 12개(C), 계정 전환·버전 5개(A), 테스트 규칙 12개(T)이고, 결과는 샌드박스의 `harness-test-result.md`에 `통과`/`실패`/`부분`과 근거로 적습니다.
 

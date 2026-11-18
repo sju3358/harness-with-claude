@@ -38,7 +38,7 @@
 | C2 PRD | `prd-write` | `docs/prd/**` | 이 티켓의 모든 REQ가 PRD 어딘가에 반영, feature 명세 확정 |
 | C2b API 문서 | `api-design` | `docs/api/README.md` (FE 전달용 한 장) | PRD의 모든 API가 필드·에러까지 문서화. 다른 문서 참조 없이 자체 완결, FE에 필요 없는 내부 정보 없음 |
 | C3 PRD 검증 | `prd-verify` | `docs/verification/prd-verify.md` | `prd-verifier`(새 컨텍스트) 판정표(요구사항 ↔ PRD ↔ API), `check-trace.sh prd` 통과. 마지막 전체 회차 `승인 가능`(차단 0건) 후 문서 변경 없음 |
-| ✋ PRD 승인 | `prd-verify` | `00-overview.md`·`docs/api/README.md` 상태 `승인 vX.Y` | 사용자가 `PRD 승인` 입력. API 문서도 함께 승인됨 |
+| ✋ PRD 승인 | `prd-verify` | `requirements.md`·`00-overview.md`·`docs/api/README.md` 상태 `승인 vX.Y` | 사용자가 `PRD 승인` 입력. API 문서도 함께 승인됨 |
 | C4 개발계획 | `feature-plan` | `artifacts/work/F-##/PLAN.md`, `HANDOFF.md` | REQ ↔ 변경 파일 ↔ TC 매핑, 확인 필요 항목 답변 완료 |
 | ✋ 계획 승인 | `feature-plan` | 승인 기록 | 사용자가 `계획 승인` 입력 |
 | C5 구현 | `implement` | 소스·빌드 파일 | 컴파일 통과. 파일 묶음마다 `HANDOFF.md` "진행 위치" 갱신. 계획 이탈은 `PLAN.md` "계획 변경 이력"과 재승인 |
