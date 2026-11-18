@@ -23,7 +23,7 @@ description: docs/requirements.md를 바탕으로 PRD(docs/prd/ - 개요·featur
 | `00-overview.md` | 목적, 범위·범위 밖(근거 REQ), feature 목록, 변경 이력 |
 | `01-skillset.md` | `project.md` 스택 + 라이브러리, 선택 근거, 개발 규약 |
 | `02-common.md` | API 응답·에러 코드·예외·인증·로깅·설정·비기능 |
-| `features/F-##.md` | `_template.md` 복사. API 목록(ID·메서드·경로만, 상세는 `api-design`), 데이터, 메시지, 비즈니스 규칙, 예외, 인수 조건 |
+| `features/F-##.md` | `_template.md` 복사. API 표(ID·메서드·경로·설명·요구사항. 행마다 근거 REQ를 적으며 API ↔ feature ↔ REQ 연결의 원본. 필드 상세는 `api-design`), 데이터, 메시지, 비즈니스 규칙, 예외, 인수 조건 |
 | `90-deploy-ops.md` | 배포, DB 스키마 관리, 로그·모니터링·알람, 롤백 |
 
 - 모든 규정 행·문장에 근거 REQ를 단다. 고객 요구가 아닌 설계 결정이면 `설계 결정: <이유>`로 쓴다.

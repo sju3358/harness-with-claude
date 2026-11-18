@@ -190,7 +190,7 @@ cat > docs/requirements.md <<'EOF'
 
 -
 EOF
-sub docs/prd/00-overview.md -e 's/^| F-01 | | REQ-001 | - | | 대기 |$/| F-02 | 주문 할인 계산 | REQ-001, REQ-002 | - | ITD-9003 | 진행 |/'
+sub docs/prd/00-overview.md -e 's/^| F-01 | | REQ-001 | - | |$/| F-02 | 주문 할인 계산 | REQ-001, REQ-002 | - | ITD-9003 |/'
 cat > docs/prd/features/F-02.md <<'EOF'
 # F-02: 주문 할인 계산
 

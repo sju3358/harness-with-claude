@@ -34,6 +34,6 @@ git switch -c feat/ITD-####
 
 - 브랜치, 기준 커밋을 보고한다.
 - 다음 행동을 안내하고 이 세션에서 이어 간다. 새 feature면 `req-gather`부터, 기존 feature의 요구·PRD 변경이면 `prd-change`부터 한다.
-- 결함 수정처럼 문서를 바꾸지 않는 티켓은 바로 `feature-plan`으로 간다. 통합 브랜치의 문서가 이미 `승인` 상태임을 보여주고 `sh .harness/hooks/prd-check.sh`를 실행한다. `PRD 승인 유효`가 아니면 이 브랜치에서 `PRD 승인`을 다시 입력받는다(승인 해시가 이 브랜치 문서 기준이어야 함).
+- 결함 수정처럼 문서를 바꾸지 않는 티켓은 바로 `feature-plan`으로 간다. 통합 브랜치의 문서가 이미 `승인` 상태임을 보여주고 `sh .harness/hooks/prd-check.sh`를 실행한다. `PRD 승인 유효`가 아니면 이 브랜치에서 `PRD 승인`을 다시 입력받는다(승인 해시가 이 브랜치 문서 기준이어야 함). `PRD 승인 기록 거부`가 나오면(마지막 전체 검증 회차 이후 통합 브랜치 문서가 바뀜) `prd-verify`로 전체 회차를 한 번 돌린 뒤 다시 받는다.
 - 토큰이 떨어져 다른 계정으로 바꿔도 같은 폴더에서 Claude를 열면 이 브랜치의 인계 상태가 자동으로 보인다고 알린다(`SessionStart` 훅).
 - 병합 후 정리는 사용자가 한다고 알린다: `git switch main`, `git pull`, `git branch -d feat/ITD-####`.
