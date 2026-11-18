@@ -1,5 +1,6 @@
 #!/bin/sh
-# SessionStart 훅: 작업 브랜치에서 세션이 시작·재개·압축되면 인계 상태를 컨텍스트로 출력
+# SessionStart 훅: 하네스가 최신이 아니면 한 줄 알림(모든 브랜치, harness-version.sh)
+# 작업 브랜치에서 세션이 시작·재개·압축되면 인계 상태를 컨텍스트로 출력
 # 토큰 한도로 다른 계정의 새 세션이 이어 받아도 대화 맥락 없이 파일만으로 이어 가기 위함
 #   - artifacts/work/F-*/HANDOFF.md의 "상태"·"진행 위치"
 #   - HANDOFF.md가 아직 없으면(feature-plan 전) 요구사항·PRD·API 문서의 버전·상태 줄과 마지막 PRD 검증 회차
@@ -10,6 +11,10 @@ dir=$(dirname "$0")
 . "$dir/lib.sh"
 
 [ -t 0 ] || cat >/dev/null
+
+# 하네스 최신 여부(해시 비교만). 최신이면 출력 없음. 브랜치와 상관없이 확인
+v=$(sh "$dir/harness-version.sh" --quiet)
+[ -n "$v" ] && printf '%s\n\n' "$v"
 
 branch=$(current_branch)
 is_work_branch "$branch" || exit 0

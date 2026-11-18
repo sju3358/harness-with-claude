@@ -25,6 +25,7 @@
 - worktree를 만들지 않는다. 프로젝트 폴더 하나에서 `work-start`가 통합 브랜치(`main`)로부터 작업 브랜치를 만들어 전환(`git switch -c`)하고, 그 세션에서 바로 이어 간다.
 - 통합 브랜치에서는 `project-init`, `work-start`, 하네스 도입·업데이트만 하고 문서·계획·코드를 편집하지 않는다(`edit-guard` 훅이 차단).
 - 한 번에 티켓 하나만 진행한다. 다른 티켓으로 전환하려면 지금 브랜치의 변경을 커밋한 뒤 `work-start`를 다시 한다.
+- 하네스는 최신으로 유지한다. 세션 시작 때 `SessionStart` 훅이, 티켓 시작 때 `work-start`가 `.harness/hooks/harness-version.sh`로 설치 버전(`.harness/version`)과 원본 `main` 커밋을 해시로만 비교한다(최신이면 출력 없음). 다르면 `harness-update` "0. 업데이트 시점 판단"대로 바뀌는 내용과 진행 중 티켓 영향을 확인한 뒤 업데이트한다. 기본 시점은 새 티켓 시작 전(통합 브랜치)이고, 진행 중인 티켓은 사용자가 원할 때만 중간에 반영한다.
 - `docs/requirements.md`에는 이 티켓 범위의 REQ만 적는다(`check-trace.sh prd`는 모든 REQ가 PRD에 반영됐는지 본다). 다른 feature의 요구는 별도 티켓 후보로 보고한다.
 
 ## 단계
@@ -32,7 +33,7 @@
 | 단계 | 스킬 | 산출물 | 완료 기준 |
 | --- | --- | --- | --- |
 | C0 초기 셋팅 | `project-init` | `docs/project.md`, Git 훅 등록 | 통합 브랜치에서 프로젝트당 1회. 스택·DB·MQ·검증 명령을 사용자에게 확인받음 |
-| W 작업 시작 | `work-start` | `feat/ITD-####` 브랜치로 전환 | 통합 브랜치에서 실행. 티켓 번호 사용자 확인 |
+| W 작업 시작 | `work-start` | `feat/ITD-####` 브랜치로 전환 | 통합 브랜치에서 실행. 하네스 버전 확인(구버전이면 `harness-update` 먼저). 티켓 번호 사용자 확인 |
 | C1 요구사항 | `req-gather` | `docs/requirements.md` | 이 티켓의 요구사항마다 REQ ID·출처·인수 기준, 미결 질문 분리 |
 | C2 PRD | `prd-write` | `docs/prd/**` | 이 티켓의 모든 REQ가 PRD 어딘가에 반영, feature 명세 확정 |
 | C2b API 문서 | `api-design` | `docs/api/**` | PRD의 모든 API가 필드·에러까지 문서화, 프론트 전달용 요약 |

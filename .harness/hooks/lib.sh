@@ -126,14 +126,39 @@ adopt_approved() {
   [ -f "$f" ] && [ -n "$(find "$f" -mmin -30 2>/dev/null)" ] && [ "$(cat "$f")" = "$1" ]
 }
 
+# 하네스 원본 저장소 주소. 검사 스크립트(hook-test.sh)는 HARNESS_UPSTREAM으로 로컬 저장소를 지정
+harness_upstream() {
+  printf '%s' "${HARNESS_UPSTREAM:-https://github.com/sju3358/harness-with-claude.git}"
+}
+
+# 설치된 하네스 버전(.harness/version)과 원본 main 최신 커밋을 해시로만 비교
+# 출력: `최신` | `구버전 <설치> <최신>` | `확인불가`. .harness/version이 없으면(하네스 원본 저장소 등) 빈 출력
+# ls-remote 한 번(최대 5초)만 쓰고 내용은 받지 않음
+harness_version_state() {
+  f="$(repo_root)/.harness/version"
+  [ -f "$f" ] || return 0
+  cur=$(tr -d '\r\n ' < "$f")
+  t=""
+  command -v timeout >/dev/null 2>&1 && t="timeout 5"
+  latest=$(GIT_TERMINAL_PROMPT=0 $t git ls-remote "$(harness_upstream)" refs/heads/main 2>/dev/null | cut -f1)
+  if [ -z "$cur" ] || [ -z "$latest" ]; then
+    echo 확인불가
+  else
+    case "$latest" in
+      "$cur"*) echo 최신 ;;
+      *) echo "구버전 $cur $latest" ;;
+    esac
+  fi
+}
+
 deny() {
   echo "차단: $1" >&2
   exit 2
 }
 
 # `하네스 OFF` 기록이 있으면 이 파일을 불러온 훅 전체 통과. `하네스 ON`으로 해제
-# record-approval.sh는 OFF 중에도 `하네스 ON`을 받아야 하고, approval-status.sh는 OFF 상태를 보여줘야 하며, prd-hash.sh는 출력만 하므로 제외
+# record-approval.sh는 OFF 중에도 `하네스 ON`을 받아야 하고, approval-status.sh는 OFF 상태를 보여줘야 하며, prd-hash.sh·harness-version.sh는 출력만 하므로 제외
 case "${0##*/}" in
-  record-approval.sh|approval-status.sh|prd-hash.sh) ;;
+  record-approval.sh|approval-status.sh|prd-hash.sh|harness-version.sh) ;;
   *) [ -f "$(state_dir)/harness-off" ] && exit 0 ;;
 esac

@@ -60,6 +60,7 @@ cleanup() {
   rm -rf "$bak"
   git restore docs/requirements.md 2>/dev/null
   git restore docs/verification 2>/dev/null || rm -rf docs/verification
+  git restore .harness/version 2>/dev/null
   git switch -q "$start_branch" 2>/dev/null
   git branch -q -d feat/ITD-9099 2>/dev/null
 }
@@ -67,6 +68,27 @@ trap cleanup EXIT
 
 mkdir -p "$S"
 reset_state
+
+# 하네스 버전 비교 대상을 샌드박스 로컬 원격으로 바꾸고, 설치 버전을 그 main과 맞춰 둠(다른 검사에 버전 알림이 섞이지 않게)
+export HARNESS_UPSTREAM="$(git remote get-url origin)"
+git rev-parse origin/main > .harness/version
+
+echo "== 하네스 버전 확인 (해시 비교)"
+check "버전 같으면 --quiet 출력 없음" "" "$(sh "$H/harness-version.sh" --quiet)"
+case "$(sh "$H/harness-version.sh")" in "하네스 버전: 최신"*) r=0 ;; *) r=1 ;; esac
+check "버전 같으면 최신 표시" 0 $r
+printf '0000000000000000000000000000000000000000\n' > .harness/version
+case "$(sh "$H/harness-version.sh" --quiet)" in *"구버전 (설치 0000000, 최신 "*"harness-update"*) r=0 ;; *) r=1 ;; esac
+check "버전 다르면 구버전 알림과 harness-update 안내" 0 $r
+case "$(sh "$H/session-context.sh" </dev/null)" in "하네스 버전: 구버전"*) r=0 ;; *) r=1 ;; esac
+check "session-context: main에서도 구버전 알림" 0 $r
+case "$(HARNESS_UPSTREAM="$root/.git/no-such-repo" sh "$H/harness-version.sh" --quiet)" in *"확인 불가"*) r=0 ;; *) r=1 ;; esac
+check "원본 저장소 응답 없으면 확인 불가(막지 않음)" 0 $r
+mv .harness/version .harness/version.bak
+check ".harness/version 없으면(하네스 원본 저장소) 출력 없음" "" "$(sh "$H/harness-version.sh" --quiet)"
+mv .harness/version.bak .harness/version
+check "harness-version 실행은 approval-gate 허용" 0 "$(bash_hook approval-gate 'sh .harness/hooks/harness-version.sh')"
+git rev-parse origin/main > .harness/version
 
 echo "== 통합 브랜치(main)"
 git switch -q main

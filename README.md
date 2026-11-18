@@ -73,7 +73,16 @@ Claude 세션을 열고 **"프로젝트 초기 셋팅해줘"** 라고 하면 `pr
 
 ### 2-3. 이미 설치된 하네스 업데이트
 
-**"하네스 업데이트해줘"** 라고 합니다. 기준 버전은 `.harness/version`을 씁니다. 이 파일이 없으면 설치 당시 커밋을 알려줘야 합니다. 프로젝트에 `harness-update` 스킬이 없으면 이렇게 지시합니다.
+하네스는 **자동으로 최신 여부를 확인**합니다. 세션을 열 때(`SessionStart` 훅)와 티켓을 시작할 때(`work-start`) `.harness/version`과 원본 `main` 커밋을 해시로만 비교하고(원격 조회 1회, 최대 5초), 최신이면 아무것도 출력하지 않습니다. 다르면 `하네스 버전: 구버전 (설치 abc1234, 최신 def5678)` 한 줄이 나오고, Claude가 `harness-update` "0. 업데이트 시점 판단"대로 바뀌는 내용과 진행 중 티켓 영향을 확인한 뒤 업데이트합니다.
+
+| 상황 | 처리 |
+| --- | --- |
+| `main`, 미커밋 변경 없음 (새 티켓 시작 전) | 바로 업데이트(`하네스 업데이트 승인` 필요) 후 티켓 시작 |
+| 작업 브랜치에서 티켓 진행 중 | 기본은 미룸. 원하면 커밋 후 `main`에서 업데이트하고 작업 브랜치에 병합 |
+| 미커밋 변경 있음 | 커밋 후 다시 판단 |
+| 네트워크 등으로 확인 불가 | 넘어감(작업을 막지 않음) |
+
+직접 하려면 **"하네스 업데이트해줘"** 라고 합니다. 기준 버전은 `.harness/version`을 씁니다. 이 파일이 없으면 설치 당시 커밋을 알려줘야 합니다. 프로젝트에 `harness-update` 스킬이 없으면 이렇게 지시합니다.
 
 ```
 harness-with-claude를 임시 폴더에 clone해서, 그 안의 .claude/skills/harness-update/SKILL.md 절차대로
@@ -367,7 +376,8 @@ feat/ITD-1234 주문 조회 API 추가
 | `approval-gate.sh` | 셸 명령 전 | 승인 없는 commit·push / 보호 브랜치 커밋 / `.harness/state/`를 다루는 명령(읽기 포함) / 하네스 예외 범위를 벗어난 커밋·push |
 | `git-safety-guard.sh` | 셸 명령 전 | `reset --hard`, `clean -f`, `branch -D`, `checkout -- .`, 강제 push, bare `stash`·`stash pop`, `pkill`·`killall`·`taskkill /IM`·`Stop-Process -Name` |
 | `record-approval.sh` | 사용자 입력 시 | (막지 않음) 승인 문구 기록 |
-| `session-context.sh` | 세션 시작·재개·압축 시 | (막지 않음) 작업 브랜치면 `HANDOFF.md` 상태·진행 위치(없으면 문서 단계 상태·마지막 PRD 검증 회차), 승인 상태, `git status`를 컨텍스트로 출력 |
+| `harness-version.sh` | 세션 시작 시(`session-context.sh`가 호출), `work-start` | (막지 않음) 설치 버전과 원본 `main`을 해시로만 비교. 최신이면 출력 없음, 다르면 구버전 한 줄 알림 |
+| `session-context.sh` | 세션 시작·재개·압축 시 | (막지 않음) 하네스 구버전 알림. 작업 브랜치면 `HANDOFF.md` 상태·진행 위치(없으면 문서 단계 상태·마지막 PRD 검증 회차), 승인 상태, `git status`를 컨텍스트로 출력 |
 | `.githooks/commit-msg` | 커밋 시 | 작업 브랜치에서 ITD 형식이 아니거나 티켓이 브랜치와 다른 커밋 |
 | `.githooks/pre-push` | push 시 | 보호 브랜치 push (하네스 예외 1회 제외) |
 
@@ -412,7 +422,7 @@ feat/ITD-1234 주문 조회 API 추가
 │   ├── test/                  하네스 검증 키트 (setup.sh · hook-test.sh · SCENARIOS.md)
 │   ├── paths · seed           하네스 소유 경로 · 프로젝트가 채우는 문서 목록
 │   ├── update.sh              하네스 업데이트 스크립트
-│   ├── version                설치된 하네스 버전 (프로젝트에서 생성)
+│   ├── version                설치된 하네스 버전 (프로젝트에서 생성, 최신 여부 비교 기준)
 │   └── state/                 승인 기록 (git 제외)
 ├── .githooks/                 commit-msg · pre-push
 └── scripts/                   check-trace.sh · check-api.mjs
@@ -438,9 +448,9 @@ feat/ITD-1234 주문 조회 API 추가
 
    push 시험용 로컬 원격 `../harness-sandbox-origin.git`도 함께 만듭니다.
 
-2. **훅 자동 검사**: 샌드박스에서 `sh .harness/test/hook-test.sh`를 실행합니다. 작업 브랜치, 계획 승인(소스·테스트), 승인 문구·게이트, PRD 승인의 전체 회차·중단 회차 처리, git 안전, Git 훅, 승인 기록 보호·상태 확인, 계정 전환 인계(HANDOFF 전·후), 하네스 OFF/ON을 77개 항목으로 확인하고 `실패 0`이어야 합니다. 승인 입력을 흉내 내므로 `setup.sh`가 만든 샌드박스에서만 실행됩니다.
+2. **훅 자동 검사**: 샌드박스에서 `sh .harness/test/hook-test.sh`를 실행합니다. 작업 브랜치, 계획 승인(소스·테스트), 승인 문구·게이트, PRD 승인의 전체 회차·중단 회차 처리, git 안전, Git 훅, 승인 기록 보호·상태 확인, 하네스 버전 확인(최신·구버전·확인 불가·원본 저장소), 계정 전환 인계(HANDOFF 전·후), 하네스 OFF/ON을 84개 항목으로 확인하고 `실패 0`이어야 합니다. 승인 입력을 흉내 내므로 `setup.sh`가 만든 샌드박스에서만 실행됩니다.
 
-3. **세션 시나리오**: 샌드박스 폴더에서 Claude 세션을 열고 [SCENARIOS.md](.harness/test/SCENARIOS.md) 순서대로 입력합니다. 기본 12개(C), 계정 전환 4개(A), 테스트 규칙 12개(T)이고, 결과는 샌드박스의 `harness-test-result.md`에 `통과`/`실패`/`부분`과 근거로 적습니다.
+3. **세션 시나리오**: 샌드박스 폴더에서 Claude 세션을 열고 [SCENARIOS.md](.harness/test/SCENARIOS.md) 순서대로 입력합니다. 기본 12개(C), 계정 전환·버전 5개(A), 테스트 규칙 12개(T)이고, 결과는 샌드박스의 `harness-test-result.md`에 `통과`/`실패`/`부분`과 근거로 적습니다.
 
 4. 끝나면 `harness-sandbox`, `harness-sandbox-origin.git` 두 폴더를 지웁니다.
 
@@ -480,4 +490,6 @@ feat/ITD-1234 주문 조회 API 추가
 | main push 차단 | 보호 브랜치 | 작업 브랜치에 push하고 PR로 병합. 사람이 꼭 직접 해야 하면 `git push --no-verify` |
 | 커밋 메시지 형식 오류 | 제목이 `{종류}/ITD-#### 제목`이 아니거나 티켓이 브랜치와 다름 | 브랜치명과 같은 접두어로 다시 작성 |
 | 훅이 전혀 동작하지 않음 | Git 훅 미등록, 세션이 하네스 설치 전에 시작됨, `하네스 OFF` 상태 | `git config core.hooksPath .githooks`, 세션 재시작, `하네스 ON` 입력 |
+| 세션마다 "하네스 버전: 구버전" 알림이 나옴 | 업데이트를 미뤘거나 진행 중 티켓이라 보류함 | 티켓을 마친 뒤 `main`에서 "하네스 업데이트해줘" 또는 다음 `work-start`에서 업데이트 |
+| "하네스 버전: 확인 불가" | 원본 저장소(GitHub)에 접속 못 함 | 작업은 그대로 진행. 네트워크가 되면 다음 세션에서 다시 확인 |
 | 승인 기록을 초기화하고 싶음 | | `승인 취소` 입력 (현재 브랜치 기준) |

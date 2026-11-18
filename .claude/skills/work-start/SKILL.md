@@ -12,6 +12,7 @@ description: ITD 티켓 하나의 작업 브랜치(feat|fix/ITD-####)를 통합 
 - `docs/project.md`가 비어 있으면 `project-init`부터 하라고 안내한다.
 - `git status --short`로 미커밋 변경이 없는지 확인한다. 있으면 멈추고 알린다. 지금 브랜치의 작업이면 `itd-commit`으로 커밋한 뒤 다시 시작한다. 미커밋 변경을 안고 브랜치를 바꾸지 않는다.
 - 현재 브랜치가 통합 브랜치(`docs/project.md`, 기본 `main`)가 아니고 작업 브랜치면, 그 티켓을 이어 할지 새 티켓으로 전환할지 사용자에게 묻는다.
+- `sh .harness/hooks/harness-version.sh`로 하네스가 최신인지 본다(해시 비교만). `구버전`이면 브랜치를 만들기 전에 `harness-update`를 실행한다("0. 업데이트 시점 판단"부터). 업데이트가 끝나면 이 스킬을 이어 간다. 사용자가 미루기를 고르거나 `확인 불가`면 그대로 진행한다.
 
 ## 2. 티켓 확인
 
@@ -22,7 +23,7 @@ description: ITD 티켓 하나의 작업 브랜치(feat|fix/ITD-####)를 통합 
 
 ```bash
 git switch <통합 브랜치>
-git pull
+git pull                      # 하네스 업데이트를 먼저 했으면 그 커밋이 포함된 상태
 git switch -c feat/ITD-####
 ```
 
