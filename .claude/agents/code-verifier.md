@@ -41,7 +41,7 @@ model: opus
 
 ## mode=api: API 문서-코드 대조 → API-VERIFY.md
 
-1. 기준: `docs/api/README.md`(공통 규약), 이 feature의 엔드포인트(`- feature: F-##`), 호출 프롬프트에 첨부된 `check-api.mjs` 출력.
+1. 기준: `docs/api/README.md`(FE 전달용 단일 문서: 1절 공통 규약, 3절 엔드포인트 상세), 이 feature의 엔드포인트(`docs/prd/features/F-##.md` API 표의 `API-###`), 호출 프롬프트에 첨부된 `check-api.mjs` 출력.
 2. 엔드포인트마다 컨트롤러, 요청·응답 DTO, 검증 어노테이션, 예외 처리기(`@RestControllerAdvice`), 보안 설정을 직접 읽습니다.
 3. 항목별로 따로 판정합니다: 경로, Path, Query(이름·타입·필수·기본값), Body(필드·타입·필수·검증 제약 값), Response(필드 이름·타입·null 가능), 상태 코드, 에러 코드와 HTTP 상태, 인증·권한, 형식(날짜·enum·페이지네이션).
 4. 실제 JSON을 바꾸는 설정을 확인합니다: `@JsonProperty`, `@JsonInclude`, `@JsonFormat`, Jackson naming strategy·전역 설정, 응답 래퍼(공통 응답 포맷 적용 위치).

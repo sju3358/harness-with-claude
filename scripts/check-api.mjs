@@ -1,5 +1,5 @@
-// API 문서(docs/api/*.md)와 코드(Spring 컨트롤러 매핑)의 엔드포인트 목록을 기계적으로 비교
-// 메서드·경로 일치만 확인. 파라미터·필드·에러 코드 대조는 verifier(mode=api)가 담당
+// API 문서(docs/api/README.md, FE 전달용 단일 문서)와 코드(Spring 컨트롤러 매핑)의 엔드포인트 목록을 기계적으로 비교
+// 메서드·경로 일치만 확인. 파라미터·필드·에러 코드 대조는 code-verifier(mode=api)가 담당
 //
 // 사용법:
 //   node scripts/check-api.mjs          전체 비교 (코드에만 있는 엔드포인트도 문제로 집계)
@@ -34,9 +34,27 @@ const projectPrefix = () => {
   return m?.[1] ?? "";
 };
 
+// API ↔ feature 연결의 원본은 feature 명세(docs/prd/features/F-##.md)의 API 표 행("| API-### | ...")
+// API 문서는 FE 전달용이라 feature·REQ 같은 추적 정보를 두지 않음
+const specFeatures = () => {
+  const dir = join(root, "docs/prd/features");
+  const map = new Map();
+  if (!existsSync(dir)) return map;
+  for (const name of readdirSync(dir)) {
+    const f = name.match(/^(F-\d+)\.md$/)?.[1];
+    if (!f) continue;
+    for (const line of readFileSync(join(dir, name), "utf8").split("\n")) {
+      const id = line.match(/^\|\s*(API-\d+)\s*\|/)?.[1];
+      if (id) map.set(id, [...new Set([...(map.get(id) ?? []), f])]);
+    }
+  }
+  return map;
+};
+
 const docEndpoints = () => {
   const dir = join(root, "docs/api");
   if (!existsSync(dir)) return [];
+  const features = specFeatures();
   const result = [];
   for (const name of readdirSync(dir)) {
     if (!name.endsWith(".md") || name === "_template.md") continue;
@@ -47,14 +65,12 @@ const docEndpoints = () => {
       .forEach((line, i) => {
         const head = line.match(/^#{2,4}\s+(API-\d+)\s+([A-Z]+)\s+(\S+)/);
         if (head) {
-          current = { id: head[1], method: head[2], path: head[3], key: `${head[2]} ${normalize(head[3])}`, file: `${file}:${i + 1}`, features: [], status: null };
+          current = { id: head[1], method: head[2], path: head[3], key: `${head[2]} ${normalize(head[3])}`, file: `${file}:${i + 1}`, features: features.get(head[1]) ?? [], status: null };
           result.push(current);
           return;
         }
         if (/^#{1,4}\s/.test(line)) current = null;
         if (!current) return;
-        // 한 엔드포인트를 여러 feature가 함께 쓰면 "- feature: F-02, F-08"처럼 모두 적음
-        if (/^- feature:/.test(line)) current.features = [...new Set(line.match(/F-\d+/g) ?? [])];
         const s = line.match(/^- API 상태:\s*(\S+)/);
         if (s) current.status = s[1];
       });
@@ -136,7 +152,7 @@ for (const d of docs) {
   if (ids.has(d.id)) report("ID 중복", `${d.id}: ${ids.get(d.id)}, ${d.file}`);
   ids.set(d.id, d.file);
   if (!METHODS.includes(d.method)) report("메서드 오류", `${d.id} ${d.method}: ${d.file}`);
-  if (!d.features.length) report("feature 없음", `${d.id}: ${d.file}`);
+  if (!d.features.length) report("feature 없음", `${d.id}: ${d.file} (어느 feature 명세 API 표에도 없음)`);
 }
 
 const targets = docs.filter((d) => !feature || d.features.includes(feature));

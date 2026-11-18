@@ -69,6 +69,7 @@ sh "$tmp/harness/.harness/update.sh" <기준 커밋|-> "$tmp/harness"
 - `.harness/update/seed/*.diff`를 읽고 프로젝트 문서에 구조 변경(새 절, 새 항목)만 옮긴다. 프로젝트가 채운 값은 건드리지 않는다.
 - `docs/requirements.md`, `docs/prd/**`, `docs/api/**`를 바꾸면 PRD 승인 해시가 깨져 재승인이 필요하다. 진행 중 feature가 있으면 이 문서들의 템플릿 변경은 미뤄 두고 다음 `prd-change` 때 반영하도록 보고한다. `docs/project.md`, `docs/traceability.md`는 승인과 무관하므로 바로 반영해도 된다.
 - 업데이트로 `docs/api/`에 새 파일이 추가된 경우도 해시가 바뀐다. `sh .harness/hooks/prd-check.sh` 결과를 보고한다.
+- API 문서가 여러 파일(도메인별 파일, `CHANGELOG.md`)로 나뉜 이전 구조면 업데이트 뒤에도 그대로 동작한다(검사 스크립트가 `docs/api/*.md`를 모두 읽음). 다만 엔드포인트의 feature 연결은 이제 feature 명세 API 표에서만 읽으므로 `check-trace.sh prd`로 누락을 확인한다. 한 장(`README.md`)으로 합치는 일은 문서 변경이라 다음 티켓의 `api-design`(승인된 문서면 `prd-change`)에서 한다고 보고한다.
 
 ## 4. 검증
 

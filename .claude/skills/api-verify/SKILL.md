@@ -1,6 +1,6 @@
 ---
 name: api-verify
-description: 구현된 컨트롤러·DTO·예외 처리가 API 문서(docs/api/*.md)와 일치하는지 검증한다. 엔드포인트 목록은 check-api.mjs로 기계 비교하고, 파라미터·필드·에러 코드는 code-verifier 에이전트(mode=api)가 대조한다. doc-code-verify 다음 단계이며 "API 검증", "API 문서와 코드 대조" 요청에 쓴다.
+description: 구현된 컨트롤러·DTO·예외 처리가 API 문서(docs/api/README.md)와 일치하는지 검증한다. 엔드포인트 목록은 check-api.mjs로 기계 비교하고, 파라미터·필드·에러 코드는 code-verifier 에이전트(mode=api)가 대조한다. doc-code-verify 다음 단계이며 "API 검증", "API 문서와 코드 대조" 요청에 쓴다.
 ---
 
 # API 문서-코드 검증

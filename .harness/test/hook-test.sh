@@ -239,16 +239,16 @@ case "$out" in *"== 미커밋 변경"*) r=0 ;; *) r=1 ;; esac
 check "session-context: 미커밋 변경 절 출력" 0 $r
 say "승인 취소"
 git switch -q -c feat/ITD-9099 main
-out=$(sh "$H/session-context.sh" 2>/dev/null)
+out=$(sh "$H/session-context.sh" </dev/null 2>/dev/null)
 case "$out" in *"HANDOFF.md 없음"*"docs/requirements.md: 버전: v0.1 상태: 작성 중"*"docs/prd/00-overview.md:"*) r=0 ;; *) r=1 ;; esac
 check "session-context: HANDOFF 전이면 문서 버전·상태 출력" 0 $r
 verify_round 1 전체 "$hash" ""
-out=$(sh "$H/session-context.sh" 2>/dev/null)
+out=$(sh "$H/session-context.sh" </dev/null 2>/dev/null)
 case "$out" in *"마지막 PRD 검증 회차: ## 회차 1"*"결론 없음"*) r=0 ;; *) r=1 ;; esac
 check "session-context: 결론 없는(중단된) PRD 검증 회차 표시" 0 $r
 rm -rf docs/verification
 git switch -q main
-out=$(sh "$H/session-context.sh" 2>/dev/null)
+out=$(sh "$H/session-context.sh" </dev/null 2>/dev/null)
 check "session-context: main에서는 출력 없음" "" "$out"
 git branch -q -d feat/ITD-9099
 git switch -q feat/ITD-9001

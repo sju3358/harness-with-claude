@@ -32,18 +32,22 @@ prd_files() {
   find docs/prd docs/api -name '*.md' ! -name '_template.md' 2>/dev/null | LC_ALL=C sort
 }
 
-# docs/api 엔드포인트 색인: "API-ID|feature(여러 개면 쉼표 구분)|REQ 인용 여부(1/0)" 한 줄씩
-api_index() {
+# API 문서(docs/api/*.md, FE 전달용 단일 문서)에 정의된 엔드포인트 ID. 제목 줄 `### API-### 메서드 경로`
+doc_api_ids() {
   for file in docs/api/*.md; do
     [ -f "$file" ] || continue
     [ "$(basename "$file")" = _template.md ] && continue
-    awk '
-      function flush() { if (id != "") print id "|" feat "|" req }
-      /^#{2,4}[ \t]+API-[0-9]+[ \t]/ { flush(); id = $2; feat = ""; req = 0; next }
-      /^#{1,4}[ \t]/ { flush(); id = ""; next }
-      id != "" && /^- feature:/ { s = $0; while (match(s, /F-[0-9]+/)) { f = substr(s, RSTART, RLENGTH); if (index("," feat ",", "," f ",") == 0) feat = (feat == "" ? f : feat "," f); s = substr(s, RSTART + RLENGTH) } }
-      id != "" && /^- 요구사항:/ && /REQ-[0-9]+/ { req = 1 }
-      END { flush() }' "$file"
+    grep -hoE '^#{2,4}[[:space:]]+API-[0-9]+[[:space:]]' "$file" | grep -oE 'API-[0-9]+'
+  done
+}
+
+# feature 명세 API 표의 행: "API-ID|F-##|REQ 인용 여부(1/0)" 한 줄씩
+# API ↔ feature ↔ REQ 연결의 원본은 feature 명세다(API 문서에는 FE가 쓰지 않는 추적 정보를 두지 않음)
+spec_api_rows() {
+  for file in docs/prd/features/F-*.md; do
+    [ -f "$file" ] || continue
+    grep -E '^\|[[:space:]]*API-[0-9]+[[:space:]]*\|' "$file" | tr -d '\r' \
+      | awk -v f="$(basename "$file" .md)" '{ match($0, /API-[0-9]+/); print substr($0, RSTART, RLENGTH) "|" f "|" ($0 ~ /REQ-[0-9]+/ ? 1 : 0) }'
   done
 }
 
@@ -79,25 +83,21 @@ check_prd() {
     grep -qE 'REQ-[0-9]+' "$file" || report "근거 없음" "$f: 명세에 REQ 인용이 없음"
   done
 
-  apis=$(api_index)
-  api_ids=$(printf '%s\n' "$apis" | cut -d'|' -f1 | grep . | LC_ALL=C sort)
+  api_ids=$(doc_api_ids | LC_ALL=C sort)
+  rows=$(spec_api_rows)
   for id in $(printf '%s\n' "$api_ids" | uniq -d); do
     report "API ID 중복" "$id: docs/api/에 두 번 이상 정의"
   done
-  for line in $apis; do
-    id=${line%%|*}
-    rest=${line#*|}
-    feat=${rest%%|*}
-    req=${rest#*|}
-    [ -n "$feat" ] || report "API feature 없음" "$id: '- feature:' 줄이 없음"
-    for ft in $(printf '%s\n' "$feat" | tr ',' ' '); do
-      if ! contains "$features" "$ft"; then
-        report "API feature 오류" "$id: ${ft}가 feature 목록에 없음"
-      elif ! grep -q "$id" "docs/prd/features/$ft.md" 2>/dev/null; then
-        report "명세 미연결" "$id: docs/prd/features/$ft.md API 표에 없음"
-      fi
+  for id in $(printf '%s\n' "$api_ids" | uniq); do
+    mine=$(printf '%s\n' "$rows" | grep "^$id|")
+    if [ -z "$mine" ]; then
+      report "API feature 없음" "$id: 어느 feature 명세(docs/prd/features/F-*.md) API 표에도 없음"
+      continue
+    fi
+    for r in $(printf '%s\n' "$mine" | grep '|0$'); do
+      ft=${r#*|}
+      report "API 근거 없음" "$id: ${ft%|*} API 표 행에 REQ 인용이 없음"
     done
-    [ "$req" = 1 ] || report "API 근거 없음" "$id: '- 요구사항:' REQ 인용이 없음"
   done
   # shellcheck disable=SC2046
   for id in $(ids_in 'API-[0-9]+' $(find docs/prd/features -name 'F-*.md' 2>/dev/null)); do
@@ -135,11 +135,9 @@ check_feature() {
   for id in $plan_reqs; do
     contains "$spec_reqs" "$id" || report "범위 밖" "$id: PLAN.md에 있으나 ${spec}에 없음"
   done
-  for line in $(api_index); do
+  for line in $(spec_api_rows | grep "|$f|"); do
     id=${line%%|*}
-    rest=${line#*|}
-    case ",${rest%%|*}," in *",$f,"*) ;; *) continue ;; esac
-    grep -q "$id" "$plan" || report "계획 미반영" "$id: docs/api/의 $f API인데 PLAN.md에 없음"
+    grep -q "$id" "$plan" || report "계획 미반영" "$id: $spec API 표에 있으나 PLAN.md에 없음"
   done
   [ -n "$plan_tcs" ] || report "TC 없음" "PLAN.md 테스트 케이스 표가 비어 있음"
   for tc in $plan_tcs; do

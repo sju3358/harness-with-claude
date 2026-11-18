@@ -16,7 +16,7 @@
 | API | 메서드 | 경로 | 설명 | 요구사항 |
 | --- | --- | --- | --- | --- |
 
-요청·응답 필드와 에러 상세는 `docs/api/`(`api-design`)에만 쓴다. 여기에는 목록과 비즈니스 의미만 둔다.
+이 표가 API ↔ feature ↔ REQ 연결의 원본이다(`check-trace.sh`·`check-api.mjs`가 읽음). 행마다 근거 REQ를 적는다. 요청·응답 필드와 에러 상세는 FE 전달용 `docs/api/README.md`(`api-design`)에만 쓴다. 여기에는 목록과 비즈니스 의미만 둔다.
 
 ## 데이터
 

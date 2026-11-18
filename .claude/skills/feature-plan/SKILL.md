@@ -19,7 +19,7 @@ description: 승인된 PRD의 feature 명세로 개발계획(artifacts/work/F-##
 입력:
 
 - `docs/prd/features/F-##.md`, `docs/prd/01-skillset.md`, `docs/prd/02-common.md`, `docs/prd/90-deploy-ops.md`
-- `docs/api/README.md`와 이 feature의 엔드포인트(`- feature: F-##`)
+- `docs/api/README.md`의 공통 규약과 이 feature의 엔드포인트(feature 명세 API 표의 `API-###`)
 - `docs/project.md`(스택, 디렉터리, 검증 명령)
 - 현재 코드(`src/`). 재사용할 기존 클래스·유틸·패턴을 먼저 찾는다.
 

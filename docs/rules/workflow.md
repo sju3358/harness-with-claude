@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | 요구사항 | `REQ-###` | `docs/requirements.md` 표 | `REQ-001` |
 | feature | `F-##` | `docs/prd/00-overview.md` feature 목록 | `F-01` |
-| API | `API-###` | `docs/api/<도메인>.md` 엔드포인트 제목 | `API-007` |
+| API | `API-###` | `docs/api/README.md` 엔드포인트 제목 (feature 명세 API 표가 feature·REQ 연결) | `API-007` |
 | 테스트 케이스 | `TC-F##-##` | `artifacts/work/F-##/PLAN.md` | `TC-F01-03` |
 
 - ID는 한번 정하면 바꾸거나 재사용하지 않는다. 삭제된 요구사항은 행을 지우지 않고 상태를 `삭제`로 바꾼다.
@@ -36,7 +36,7 @@
 | W 작업 시작 | `work-start` | `feat/ITD-####` 브랜치로 전환 | 통합 브랜치에서 실행. 하네스 버전 확인(구버전이면 `harness-update` 먼저). 티켓 번호 사용자 확인 |
 | C1 요구사항 | `req-gather` | `docs/requirements.md` | 이 티켓의 요구사항마다 REQ ID·출처·인수 기준, 미결 질문 분리 |
 | C2 PRD | `prd-write` | `docs/prd/**` | 이 티켓의 모든 REQ가 PRD 어딘가에 반영, feature 명세 확정 |
-| C2b API 문서 | `api-design` | `docs/api/**` | PRD의 모든 API가 필드·에러까지 문서화, 프론트 전달용 요약 |
+| C2b API 문서 | `api-design` | `docs/api/README.md` (FE 전달용 한 장) | PRD의 모든 API가 필드·에러까지 문서화. 다른 문서 참조 없이 자체 완결, FE에 필요 없는 내부 정보 없음 |
 | C3 PRD 검증 | `prd-verify` | `docs/verification/prd-verify.md` | `prd-verifier`(새 컨텍스트) 판정표(요구사항 ↔ PRD ↔ API), `check-trace.sh prd` 통과. 마지막 전체 회차 `승인 가능`(차단 0건) 후 문서 변경 없음 |
 | ✋ PRD 승인 | `prd-verify` | `00-overview.md`·`docs/api/README.md` 상태 `승인 vX.Y` | 사용자가 `PRD 승인` 입력. API 문서도 함께 승인됨 |
 | C4 개발계획 | `feature-plan` | `artifacts/work/F-##/PLAN.md`, `HANDOFF.md` | REQ ↔ 변경 파일 ↔ TC 매핑, 확인 필요 항목 답변 완료 |
@@ -53,6 +53,7 @@
 - 테스트는 첫 실패에서 멈춘다. 원인을 분류하고, 구현 결함이면 `HANDOFF.md` "구현 수정 요청"에 버그 리포트를 먼저 쓴 뒤 `implement`로 구현을 고치고 다시 돌린다. 구현을 고칠 때 테스트 기대값은 바꾸지 않는다.
 - 중간 재실행은 `test-status.md` 기준으로 `FAIL`·`미실행`과 수정 파일에 관련된 `PASS` TC만 한다. 최종 완료 판정은 전체 회귀(전체 테스트) 통과가 필수다. 모든 TC가 `PASS`가 되면 전체 회귀를 실행하고, 실패 0건이며 그 뒤 소스·테스트 변경이 없을 때만 `HANDOFF.md` 상태를 `완료`로 쓴다. 충족하지 않은 채 커밋하면 `itd-commit`이 경고하고 `- 미검증: 전체 회귀`를 남긴다.
 - 테스트·검증이 끝나지 않아도 커밋·push를 막지 않는다. `itd-commit`이 미충족 항목을 근거와 함께 1회 경고하고, 사용자가 진행 여부를 정한다. 진행하면 커밋 본문에 `- 미검증: <항목>`을 남긴다.
+- 커밋에 들어갈 인계 기록(`HANDOFF.md` 상태·다음 행동)은 커밋 전에 갱신해 같은 커밋에 넣는다. 커밋·push 뒤에는 파일을 고치지 않는다(작업 트리가 다시 바뀌면 `main` 전환 전에 커밋·승인을 또 받아야 함).
 
 ### 세션 인계 (토큰 한도·계정 전환)
 
